@@ -50,7 +50,7 @@ func main() {
 		dir = filepath.Dir(*fName)
 	}
 	if _, err := os.Stat(dir); errors.Is(err, os.ErrNotExist) {
-		fmt.Printf("directory %s does not exist. create...", dir)
+		fmt.Printf("directory %s does not exist. create...\n", dir)
 		if err := os.MkdirAll(dir, 0777); err != nil {
 			log.Fatal(err)
 		}
