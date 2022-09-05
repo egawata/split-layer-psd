@@ -12,10 +12,16 @@ import (
 	"github.com/oov/psd"
 )
 
-var (
-	fName  = flag.String("f", "", "psd file")
-	outDir = flag.String("o", "", "output directory (default: same directory with original psd)")
-)
+var fName string
+var outDir string
+
+func init() {
+	flag.StringVar(&fName, "file", "", "psd filename")
+	flag.StringVar(&fName, "f", "", "psd filename (shorthand)")
+	oUsage := `output directory (default: same directory with original psd)`
+	flag.StringVar(&outDir, "out", "", oUsage)
+	flag.StringVar(&outDir, "o", "", oUsage+` (shorthand)`)
+}
 
 func processLayer(filename string, layerName string, l *psd.Layer) error {
 	for i, ll := range l.Layer {
@@ -44,22 +50,21 @@ func processLayer(filename string, layerName string, l *psd.Layer) error {
 
 func main() {
 	flag.Parse()
-	if *fName == "" {
+	if fName == "" {
 		log.Fatal("filename(-f) required")
 	}
 
-	dir := *outDir
-	if dir == "" {
-		dir = filepath.Dir(*fName)
+	if outDir == "" {
+		outDir = filepath.Dir(fName)
 	}
-	if _, err := os.Stat(dir); errors.Is(err, os.ErrNotExist) {
-		fmt.Printf("directory %s does not exist. create...\n", dir)
-		if err := os.MkdirAll(dir, 0777); err != nil {
+	if _, err := os.Stat(outDir); errors.Is(err, os.ErrNotExist) {
+		fmt.Printf("directory %s does not exist. create...\n", outDir)
+		if err := os.MkdirAll(outDir, 0777); err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	file, err := os.Open(*fName)
+	file, err := os.Open(fName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,7 +75,7 @@ func main() {
 		log.Fatal(err)
 	}
 	for i, layer := range img.Layer {
-		fn := filepath.Join(dir, fmt.Sprintf("%03d", i))
+		fn := filepath.Join(outDir, fmt.Sprintf("%03d", i))
 		if err = processLayer(fn, layer.Name, &layer); err != nil {
 			log.Printf("[WARN] %s: %v\n", fn, err)
 		}
