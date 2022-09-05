@@ -4,7 +4,7 @@ Extracts each layers in psd file, and output them to image files.
 
 ![howtouse](howtouse.jpg)
 
-This tool is based on `github.com/oov/psd`.
+This tool is based on [oov/psd: PSD/PSB(Photoshop) file reader for Go programming language](https://github.com/oov/psd).
  
 ## Install
 
