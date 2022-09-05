@@ -1,6 +1,6 @@
 module github.com/egawata/split-layer-psd
 
-go 1.20
+go 1.18
 
 require github.com/oov/psd v0.0.0-20220121172623-5db5eafcecbb
 
