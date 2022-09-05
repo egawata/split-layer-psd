@@ -1,4 +1,4 @@
-module github.com/egawata/split_layer_psd
+module github.com/egawata/split-layer-psd
 
 go 1.20
 
