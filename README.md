@@ -4,6 +4,11 @@ Extracts each layers in psd file, and output them to image files.
 
 This tool is based on `github.com/oov/psd`.
  
+## Install
+
+~~~
+go install github.com/egawata/split-layer-psd@latest
+~~~
 
 ## Usage
 
