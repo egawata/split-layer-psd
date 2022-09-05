@@ -19,13 +19,16 @@ var (
 
 func processLayer(filename string, layerName string, l *psd.Layer) error {
 	for i, ll := range l.Layer {
-		if err := processLayer(
-			fmt.Sprintf("%s_%03d", filename, i),
-			layerName+"/"+ll.Name, &ll); err != nil {
+		fn := fmt.Sprintf("%s_%03d", filename, i)
+		if err := processLayer(fn, layerName+"/"+ll.Name, &ll); err != nil {
 			return err
 		}
 	}
 	if !l.HasImage() {
+		return nil
+	}
+	if l.Picker.Bounds().Empty() {
+		fmt.Printf("[warn] empty layer: %s\n", layerName)
 		return nil
 	}
 
@@ -67,8 +70,9 @@ func main() {
 		log.Fatal(err)
 	}
 	for i, layer := range img.Layer {
-		if err = processLayer(filepath.Join(dir, fmt.Sprintf("%03d", i)), layer.Name, &layer); err != nil {
-			log.Fatal(err)
+		fn := filepath.Join(dir, fmt.Sprintf("%03d", i))
+		if err = processLayer(fn, layer.Name, &layer); err != nil {
+			log.Printf("[WARN] %s: %v\n", fn, err)
 		}
 	}
 }
