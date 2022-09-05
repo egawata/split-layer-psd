@@ -1,4 +1,4 @@
-# split_layer_psd
+# split-layer-psd
 
 Extracts each layers in psd file, and output them to image files.
 
@@ -8,7 +8,7 @@ This tool is based on `github.com/oov/psd`.
 ## Usage
 
 ~~~
-split_layer_psd -f image.psd -o outdir
+split-layer-psd -f image.psd -o outdir
 ~~~
 
 ## Options
