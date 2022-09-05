@@ -2,6 +2,8 @@
 
 Extracts each layers in psd file, and output them to image files.
 
+![howtouse](howtouse.jpg)
+
 This tool is based on `github.com/oov/psd`.
  
 ## Install
