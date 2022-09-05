@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"image/png"
@@ -47,6 +48,12 @@ func main() {
 	dir := *outDir
 	if dir == "" {
 		dir = filepath.Dir(*fName)
+	}
+	if _, err := os.Stat(dir); errors.Is(err, os.ErrNotExist) {
+		fmt.Printf("directory %s does not exist. create...", dir)
+		if err := os.MkdirAll(dir, 0777); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	file, err := os.Open(*fName)
