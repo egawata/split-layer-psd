@@ -17,6 +17,18 @@ import (
 
 var fName string
 var outDir string
+var optBgcolor string
+
+var col = map[string][]uint16{
+	"black":   {0, 0, 0},
+	"blue":    {0, 0, 65535},
+	"red":     {65535, 0, 0},
+	"magenta": {65535, 0, 65535},
+	"green":   {0, 65535, 0},
+	"cyan":    {0, 65535, 65535},
+	"yellow":  {65535, 65535, 0},
+	"white":   {65535, 65535, 65535},
+}
 
 func init() {
 	flag.StringVar(&fName, "file", "", "psd filename")
@@ -24,6 +36,8 @@ func init() {
 	oUsage := `output directory (default: same directory with original psd)`
 	flag.StringVar(&outDir, "out", "", oUsage)
 	flag.StringVar(&outDir, "o", "", oUsage+` (shorthand)`)
+	bgcolorUsage := `fill background with color`
+	flag.StringVar(&optBgcolor, "bgcolor", "", bgcolorUsage)
 }
 
 func processLayer(filename string, layerName string, l *psd.Layer) error {
@@ -43,21 +57,32 @@ func processLayer(filename string, layerName string, l *psd.Layer) error {
 
 	fmt.Printf("%s -> %s.png\n", layerName, filename)
 
-	bgColor := color.RGBA64{65535, 65535, 65535, 65535}
+	var outImage image.Image
 
-	bounds := l.Picker.Bounds()
-	outImage := image.NewRGBA64(bounds)
-	max := float32(math.MaxUint16)
-	for x := bounds.Min.X; x < bounds.Max.X; x++ {
-		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-			c := l.Picker.At(x, y)
-			r, g, b, a := c.RGBA()
-			af := float32(a)
-			ra := af / max
-			newR := uint16(float32(r)*ra + float32(bgColor.R)*(1-ra))
-			newG := uint16(float32(g)*ra + float32(bgColor.G)*(1-ra))
-			newB := uint16(float32(b)*ra + float32(bgColor.B)*(1-ra))
-			outImage.Set(x, y, color.RGBA64{newR, newG, newB, uint16(max)})
+	if optBgcolor == "" {
+		outImage = l.Picker
+	} else {
+		var bgColor color.RGBA64
+		if bg, ok := col[optBgcolor]; ok {
+			bgColor = color.RGBA64{bg[0], bg[1], bg[2], 65535}
+		} else {
+			log.Fatalf("invalid bgcolor: %s", optBgcolor)
+		}
+
+		bounds := l.Picker.Bounds()
+		outImage = image.NewRGBA64(bounds)
+		max := float32(math.MaxUint16)
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+				c := l.Picker.At(x, y)
+				r, g, b, a := c.RGBA()
+				af := float32(a)
+				ra := af / max
+				newR := uint16(float32(r)*ra + float32(bgColor.R)*(1-ra))
+				newG := uint16(float32(g)*ra + float32(bgColor.G)*(1-ra))
+				newB := uint16(float32(b)*ra + float32(bgColor.B)*(1-ra))
+				outImage.(*image.RGBA64).Set(x, y, color.RGBA64{newR, newG, newB, uint16(math.MaxUint16)})
+			}
 		}
 	}
 
