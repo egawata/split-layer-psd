@@ -22,3 +22,4 @@ split-layer-psd -f image.psd -o outdir
 
 - `-f`: (*required*) psd filename
 - `-o`: directory to save images. If omitted, the same directory with psd file is used.
+- `-bgcolor=(color name)`: fill background with specified color. `color name` is one of `black` `blue` `red` `magenta` `green` `cyan` `yellow` and `white` 
