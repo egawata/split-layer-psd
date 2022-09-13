@@ -4,8 +4,11 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"image"
+	"image/color"
 	"image/png"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 
@@ -40,12 +43,30 @@ func processLayer(filename string, layerName string, l *psd.Layer) error {
 
 	fmt.Printf("%s -> %s.png\n", layerName, filename)
 
+	bgColor := color.RGBA64{65535, 65535, 65535, 65535}
+
+	bounds := l.Picker.Bounds()
+	outImage := image.NewRGBA64(bounds)
+	max := float32(math.MaxUint16)
+	for x := bounds.Min.X; x < bounds.Max.X; x++ {
+		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+			c := l.Picker.At(x, y)
+			r, g, b, a := c.RGBA()
+			af := float32(a)
+			ra := af / max
+			newR := uint16(float32(r)*ra + float32(bgColor.R)*(1-ra))
+			newG := uint16(float32(g)*ra + float32(bgColor.G)*(1-ra))
+			newB := uint16(float32(b)*ra + float32(bgColor.B)*(1-ra))
+			outImage.Set(x, y, color.RGBA64{newR, newG, newB, uint16(max)})
+		}
+	}
+
 	out, err := os.Create(fmt.Sprintf("%s.png", filename))
 	if err != nil {
 		return err
 	}
 	defer out.Close()
-	return png.Encode(out, l.Picker)
+	return png.Encode(out, outImage)
 }
 
 func main() {
