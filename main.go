@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"errors"
 	"flag"
 	"fmt"
@@ -42,6 +43,26 @@ func init() {
 	flag.BoolVar(&optBgcolorWhite, "bw", false, "set bgcolor to white. shorthand for `-bgcolor white`")
 }
 
+func parseBgcolor() color.RGBA64 {
+	var bgcolor color.RGBA64
+	if bg, ok := col[optBgcolor]; ok {
+		return color.RGBA64{bg[0], bg[1], bg[2], 65535}
+	}
+
+	// color code like `f7ca94`
+	if c, err := hex.DecodeString(optBgcolor); err == nil {
+		f := func(b byte) uint16 {
+			u := uint16(b)
+			return u*256 + u
+		}
+
+		return color.RGBA64{f(c[0]), f(c[1]), f(c[2]), 65535}
+	}
+
+	log.Fatalf("invalid bgcolor: %s", optBgcolor)
+	return bgcolor
+}
+
 func processLayer(filename string, layerName string, l *psd.Layer) error {
 	for i, ll := range l.Layer {
 		fn := fmt.Sprintf("%s_%03d", filename, i)
@@ -64,13 +85,7 @@ func processLayer(filename string, layerName string, l *psd.Layer) error {
 	if optBgcolor == "" {
 		outImage = l.Picker
 	} else {
-		var bgColor color.RGBA64
-		if bg, ok := col[optBgcolor]; ok {
-			bgColor = color.RGBA64{bg[0], bg[1], bg[2], 65535}
-		} else {
-			log.Fatalf("invalid bgcolor: %s", optBgcolor)
-		}
-
+		bgColor := parseBgcolor()
 		bounds := l.Picker.Bounds()
 		outImage = image.NewRGBA64(bounds)
 		max := float32(math.MaxUint16)
@@ -106,7 +121,6 @@ func main() {
 	if optBgcolorWhite && optBgcolor == "" {
 		optBgcolor = "white"
 	}
-	fmt.Printf("optBgcolor = %s, optBgcolorWhite = %v\n", optBgcolor, optBgcolorWhite)
 
 	if outDir == "" {
 		outDir = filepath.Dir(fName)
