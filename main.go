@@ -18,6 +18,7 @@ import (
 var fName string
 var outDir string
 var optBgcolor string
+var optBgcolorWhite bool
 
 var col = map[string][]uint16{
 	"black":   {0, 0, 0},
@@ -38,6 +39,7 @@ func init() {
 	flag.StringVar(&outDir, "o", "", oUsage+` (shorthand)`)
 	bgcolorUsage := `fill background with color`
 	flag.StringVar(&optBgcolor, "bgcolor", "", bgcolorUsage)
+	flag.BoolVar(&optBgcolorWhite, "bw", false, "set bgcolor to white. shorthand for `-bgcolor white`")
 }
 
 func processLayer(filename string, layerName string, l *psd.Layer) error {
@@ -99,6 +101,12 @@ func main() {
 	if fName == "" {
 		log.Fatal("filename(-f) required")
 	}
+
+	// optBgcolor has precedence to optBgcolorWhite
+	if optBgcolorWhite && optBgcolor == "" {
+		optBgcolor = "white"
+	}
+	fmt.Printf("optBgcolor = %s, optBgcolorWhite = %v\n", optBgcolor, optBgcolorWhite)
 
 	if outDir == "" {
 		outDir = filepath.Dir(fName)
