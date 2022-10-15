@@ -20,6 +20,9 @@ var fName string
 var outDir string
 var optBgcolor string
 var optBgcolorWhite bool
+var optKeepOriginalBound bool
+
+var originalBound image.Rectangle
 
 var col = map[string][]uint16{
 	"black":   {0, 0, 0},
@@ -41,6 +44,7 @@ func init() {
 	bgcolorUsage := `fill background with color`
 	flag.StringVar(&optBgcolor, "bgcolor", "", bgcolorUsage)
 	flag.BoolVar(&optBgcolorWhite, "bw", false, "set bgcolor to white. shorthand for `-bgcolor white`")
+	flag.BoolVar(&optKeepOriginalBound, "keep-original-bound", false, "keep original bound")
 }
 
 func parseBgcolor() color.RGBA64 {
@@ -79,6 +83,10 @@ func processLayer(filename string, layerName string, l *psd.Layer) error {
 	}
 
 	fmt.Printf("%s -> %s.png\n", layerName, filename)
+
+	if optKeepOriginalBound {
+		l.Picker = Rebind(originalBound, l.Picker)
+	}
 
 	var outImage image.Image
 
@@ -142,10 +150,25 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	originalBound = img.Config.Rect
+
 	for i, layer := range img.Layer {
 		fn := filepath.Join(outDir, fmt.Sprintf("%03d", i))
 		if err = processLayer(fn, layer.Name, &layer); err != nil {
 			log.Printf("[WARN] %s: %v\n", fn, err)
 		}
 	}
+}
+
+// Rebind resizes src image to fit to dstBound.
+// this enables avoiding trimming transparent area.
+func Rebind(dstBound image.Rectangle, src image.Image) *image.NRGBA64 {
+	n := image.NewNRGBA64(dstBound)
+	i := n.Bounds().Intersect(src.Bounds())
+	for x := i.Bounds().Min.X; x < i.Bounds().Max.X; x++ {
+		for y := i.Bounds().Min.Y; y < i.Bounds().Max.Y; y++ {
+			n.Set(x, y, src.At(x, y))
+		}
+	}
+	return n
 }
