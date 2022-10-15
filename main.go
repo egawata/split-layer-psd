@@ -77,7 +77,10 @@ func processLayer(filename string, layerName string, l *psd.Layer) error {
 	if !l.HasImage() {
 		return nil
 	}
-	if l.Picker.Bounds().Empty() {
+
+	pick := l.Picker
+
+	if pick.Bounds().Empty() {
 		fmt.Printf("[warn] empty layer: %s\n", layerName)
 		return nil
 	}
@@ -85,21 +88,21 @@ func processLayer(filename string, layerName string, l *psd.Layer) error {
 	fmt.Printf("%s -> %s.png\n", layerName, filename)
 
 	if optKeepOriginalBound {
-		l.Picker = Rebind(originalBound, l.Picker)
+		pick = Rebind(originalBound, pick)
 	}
 
 	var outImage image.Image
 
 	if optBgcolor == "" {
-		outImage = l.Picker
+		outImage = pick
 	} else {
 		bgColor := parseBgcolor()
-		bounds := l.Picker.Bounds()
+		bounds := pick.Bounds()
 		outImage = image.NewRGBA64(bounds)
 		max := float32(math.MaxUint16)
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-				c := l.Picker.At(x, y)
+				c := pick.At(x, y)
 				r, g, b, a := c.RGBA()
 				af := float32(a)
 				ra := af / max
@@ -162,8 +165,8 @@ func main() {
 
 // Rebind resizes src image to fit to dstBound.
 // this enables avoiding trimming transparent area.
-func Rebind(dstBound image.Rectangle, src image.Image) *image.NRGBA64 {
-	n := image.NewNRGBA64(dstBound)
+func Rebind(dstBound image.Rectangle, src image.Image) *image.RGBA64 {
+	n := image.NewRGBA64(dstBound)
 	i := n.Bounds().Intersect(src.Bounds())
 	for x := i.Bounds().Min.X; x < i.Bounds().Max.X; x++ {
 		for y := i.Bounds().Min.Y; y < i.Bounds().Max.Y; y++ {
