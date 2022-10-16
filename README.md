@@ -26,3 +26,5 @@ split-layer-psd -f image.psd -o outdir
     - color name: one of `black` `blue` `red` `magenta` `green` `cyan` `yellow` and `white`
     - hex color code: like `f3c791`
 - `-bw`: fill background with white. shorthand for `-bgcolor=white`
+- `-keep-original-bound`: apply bound of original psd to each layer images.
+    - By default, transparent rectangle areas near borders are trimmed. This option avoids the trimming.

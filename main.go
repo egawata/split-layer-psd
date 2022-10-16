@@ -88,7 +88,7 @@ func processLayer(filename string, layerName string, l *psd.Layer) error {
 	fmt.Printf("%s -> %s.png\n", layerName, filename)
 
 	if optKeepOriginalBound {
-		pick = Rebind(originalBound, pick)
+		pick = adjustBound(originalBound, pick)
 	}
 
 	var outImage image.Image
@@ -163,9 +163,8 @@ func main() {
 	}
 }
 
-// Rebind resizes src image to fit to dstBound.
-// this enables avoiding trimming transparent area.
-func Rebind(dstBound image.Rectangle, src image.Image) *image.RGBA64 {
+// adjust image's bound.
+func adjustBound(dstBound image.Rectangle, src image.Image) *image.RGBA64 {
 	n := image.NewRGBA64(dstBound)
 	i := n.Bounds().Intersect(src.Bounds())
 	for x := i.Bounds().Min.X; x < i.Bounds().Max.X; x++ {
